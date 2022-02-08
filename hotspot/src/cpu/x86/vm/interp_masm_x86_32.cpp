@@ -49,7 +49,7 @@ void InterpreterMacroAssembler::get_method(Register reg) {
 
 
 #ifndef CC_INTERP
-void InterpreterMacroAssembler::call_VM_leaf_base(
+int InterpreterMacroAssembler::call_VM_leaf_base(
   address entry_point,
   int     number_of_arguments
 ) {
@@ -73,7 +73,7 @@ void InterpreterMacroAssembler::call_VM_leaf_base(
   }
 #endif
   // super call
-  MacroAssembler::call_VM_leaf_base(entry_point, number_of_arguments);
+  return MacroAssembler::call_VM_leaf_base(entry_point, number_of_arguments);
   // interpreter specific
 
   // Used to ASSERT that rsi/rdi were equal to frame's bcp/locals

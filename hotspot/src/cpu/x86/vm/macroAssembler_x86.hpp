@@ -56,7 +56,7 @@ class MacroAssembler: public Assembler {
   #define VIRTUAL virtual
 #endif
 
-  VIRTUAL void call_VM_leaf_base(
+  VIRTUAL int call_VM_leaf_base(
     address entry_point,               // the entry point
     int     number_of_arguments        // the number of arguments to pop after the call
   );
@@ -128,6 +128,13 @@ class MacroAssembler: public Assembler {
       *disp = imm32;
     }
   }
+
+  void toss_args() {
+    const int base_args = 2;
+    movptr(rsp, Address(rsp, (base_args + 7) * wordSize));
+  }
+
+  int rtcall(RuntimeAddress entry_point, int number_of_arguments);
 
   // The following 4 methods return the offset of the appropriate move instruction
 
@@ -261,7 +268,7 @@ class MacroAssembler: public Assembler {
   void super_call_VM(Register oop_result, Register last_java_sp, address entry_point, Register arg_1, Register arg_2, Register arg_3, bool check_exceptions = true);
   void super_call_VM(Register oop_result, Register last_java_sp, address entry_point, Register arg_1, Register arg_2, Register arg_3, Register arg_4, bool check_exceptions = true);
 
-  void call_VM_leaf(address entry_point,
+  int  call_VM_leaf(address entry_point,
                     int number_of_arguments = 0);
   void call_VM_leaf(address entry_point,
                     Register arg_1);

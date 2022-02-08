@@ -80,9 +80,10 @@ int StubAssembler::call_RT(Register oop_result1, Register metadata_result, addre
   }
 
   // do the call
-  call(RuntimeAddress(entry));
+  rtcall(RuntimeAddress(entry), 0);
   if (!align_stack) {
     call_offset = offset();
+    toss_args();
   }
   // verify callee-saved register
 #ifdef ASSERT

@@ -3106,9 +3106,10 @@ void SharedRuntime::generate_deopt_blob() {
   // Call C code.  Need thread but NOT official VM entry
   // crud.  We cannot block on this call, no GC can happen.  Call should
   // restore return values to their stack-slots with the new SP.
-  __ call(RuntimeAddress(CAST_FROM_FN_PTR(address, Deoptimization::unpack_frames)));
+  __ rtcall(RuntimeAddress(CAST_FROM_FN_PTR(address, Deoptimization::unpack_frames)), 0);
   // Set an oopmap for the call site
   oop_maps->add_gc_map( __ pc()-start, new OopMap( frame_size_in_words, 0 ));
+  __ toss_args();
 
   // rax, contains the return result type
   __ push(rax);
@@ -3323,9 +3324,10 @@ void SharedRuntime::generate_uncommon_trap_blob() {
   // restore return values to their stack-slots with the new SP.
   __ movptr(Address(rsp,arg0_off*wordSize),rdi);
   __ movl(Address(rsp,arg1_off*wordSize), Deoptimization::Unpack_uncommon_trap);
-  __ call(RuntimeAddress(CAST_FROM_FN_PTR(address, Deoptimization::unpack_frames)));
+  __ rtcall(RuntimeAddress(CAST_FROM_FN_PTR(address, Deoptimization::unpack_frames)), 0);
   // Set an oopmap for the call site
   oop_maps->add_gc_map( __ pc()-start, new OopMap( framesize, 0 ) );
+  __ toss_args();
 
   __ get_thread(rdi);
   __ reset_last_Java_frame(rdi, true);
@@ -3484,15 +3486,14 @@ RuntimeStub* SharedRuntime::generate_resolve_blob(address destination, const cha
   __ push(thread);
   __ set_last_Java_frame(thread, noreg, rbp, NULL);
 
-  __ call(RuntimeAddress(destination));
-
+  __ rtcall(destination, 0);
 
   // Set an oopmap for the call site.
   // We need this not only for callee-saved registers, but also for volatile
   // registers that the compiler might be keeping live across a safepoint.
 
-  oop_maps->add_gc_map( __ offset() - start, map);
-
+  oop_maps->add_gc_map(__ offset() - start, map);
+  __ toss_args();
   // rax, contains the address we are going to jump to assuming no exception got installed
 
   __ addptr(rsp, wordSize);

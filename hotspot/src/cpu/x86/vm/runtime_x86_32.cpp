@@ -111,10 +111,11 @@ void OptoRuntime::generate_exception_blob() {
   __ movptr(Address(rsp, thread_off * wordSize), rcx); // Thread is first argument
   __ set_last_Java_frame(rcx, noreg, noreg, NULL);
 
-  __ call(RuntimeAddress(CAST_FROM_FN_PTR(address, OptoRuntime::handle_exception_C)));
+  __ rtcall(RuntimeAddress(CAST_FROM_FN_PTR(address, OptoRuntime::handle_exception_C)), 0);
 
   // No registers to map, rbp is known implicitly
   oop_maps->add_gc_map( __ pc() - start,  new OopMap( framesize, 0 ));
+  __ toss_args();
   __ get_thread(rcx);
   __ reset_last_Java_frame(rcx, false);
 

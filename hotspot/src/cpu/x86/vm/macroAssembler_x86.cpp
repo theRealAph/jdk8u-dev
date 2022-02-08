@@ -99,10 +99,22 @@ Address MacroAssembler::as_Address(ArrayAddress adr) {
   return Address::make_array(adr);
 }
 
-void MacroAssembler::call_VM_leaf_base(address entry_point,
+extern "C" void x86_32_align_call();
+
+int MacroAssembler::rtcall(RuntimeAddress entry_point, int number_of_arguments) {
+  movptr(rdx, (intptr_t)(entry_point.target()));
+  call(RuntimeAddress(CAST_FROM_FN_PTR(address, x86_32_align_call)));
+  int result = offset();
+
+  return result;
+}
+
+int MacroAssembler::call_VM_leaf_base(address entry_point,
                                        int number_of_arguments) {
-  call(RuntimeAddress(entry_point));
+  int result = rtcall(RuntimeAddress(entry_point), number_of_arguments);
+  toss_args();
   increment(rsp, number_of_arguments * wordSize);
+  return result;
 }
 
 void MacroAssembler::cmpklass(Address src1, Metadata* obj) {
@@ -2614,8 +2626,8 @@ void MacroAssembler::call_VM_helper(Register oop_result, address entry_point, in
 
 }
 
-void MacroAssembler::call_VM_leaf(address entry_point, int number_of_arguments) {
-  call_VM_leaf_base(entry_point, number_of_arguments);
+int MacroAssembler::call_VM_leaf(address entry_point, int number_of_arguments) {
+  return call_VM_leaf_base(entry_point, number_of_arguments);
 }
 
 void MacroAssembler::call_VM_leaf(address entry_point, Register arg_0) {

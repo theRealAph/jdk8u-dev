@@ -25,7 +25,7 @@
 #ifndef CC_INTERP
  protected:
   // Interpreter specific version of call_VM_base
-  virtual void call_VM_leaf_base(
+  virtual int call_VM_leaf_base(
     address entry_point,
     int     number_of_arguments
   );

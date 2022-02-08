@@ -299,7 +299,7 @@ static int sizeof_FFree_Float_Stack_All = -1;
 
 int MachCallRuntimeNode::ret_addr_offset() {
   assert(sizeof_FFree_Float_Stack_All != -1, "must have been emitted already");
-  return sizeof_FFree_Float_Stack_All + 5 + pre_call_resets_size();
+  return sizeof_FFree_Float_Stack_All + 10 + pre_call_resets_size();
 }
 
 // Indicate if the safepoint node needs the polling page as an input.
@@ -1798,15 +1798,12 @@ encode %{
   %}
 
   enc_class Java_To_Runtime (method meth) %{    // CALL Java_To_Runtime, Java_To_Runtime_Leaf
-    // This is the instruction starting address for relocation info.
-    cbuf.set_insts_mark();
-    $$$emit8$primary;
-    // CALL directly to the runtime
-    emit_d32_reloc(cbuf, ($meth$$method - (int)(cbuf.insts_end()) - 4),
-                runtime_call_Relocation::spec(), RELOC_IMM32 );
+    MacroAssembler _masm(&cbuf);
+
+    __ rtcall((address)$meth$$method, 0);
+    __ toss_args();
 
     if (UseSSE >= 2) {
-      MacroAssembler _masm(&cbuf);
       BasicType rt = tf()->return_type();
 
       if ((rt == T_FLOAT || rt == T_DOUBLE) && !return_value_is_used()) {
